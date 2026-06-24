@@ -15,11 +15,12 @@ func main() {
 	router := NewRouter()
 	Register(router, GetUserHandler)
 	Register(router, CreateUserHandler)
-	for k, _ := range router.handlers {
+	for k := range router.handlers {
 		fmt.Printf("router.handlers: %s\n", k)
 	}
 
-	http.HandleFunc("/ws", WSHandler(router))
-	http.HandleFunc("/", greet)
-	http.ListenAndServe(":8080", nil)
+	mux := http.NewServeMux()
+	mux.Handle("/ws", withCORS(WSHandler(router)))
+	mux.Handle("/", withCORS(http.HandlerFunc(greet)))
+	http.ListenAndServe(":8080", mux)
 }
