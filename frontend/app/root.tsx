@@ -9,12 +9,10 @@ import {
 
 import type { Route } from "./+types/root"
 import "./app.css"
-import { useSocketEvent } from "./hooks"
+import { SocketProvider } from "./hooks"
+import { Toaster } from "./components/ui/sonner"
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  useSocketEvent("main.ErrorResponse", (p)=>{
-
-  })
   return (
     <html lang="en">
       <head>
@@ -24,9 +22,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
-        <ScrollRestoration />
-        <Scripts />
+        <SocketProvider>
+          {children}
+          <ScrollRestoration />
+          <Scripts />
+          <Toaster />
+        </SocketProvider>
       </body>
     </html>
   )
