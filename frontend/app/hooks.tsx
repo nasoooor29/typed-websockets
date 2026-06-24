@@ -1,14 +1,23 @@
 import { createContext, useContext, useEffect, useMemo } from "react"
-import { TypedSocket, type ClientEvents, type ServerEvents } from "./lib/ws"
+import {
+  TypedSocket,
+  clientEventSchemas,
+  serverEventSchemas,
+  type ServerEvents,
+} from "./lib/ws"
 
 const SocketContext = createContext<TypedSocket<
-  ServerEvents,
-  ClientEvents
+  typeof serverEventSchemas,
+  typeof clientEventSchemas
 > | null>(null)
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const socket = useMemo(() => {
-    return new TypedSocket<ServerEvents, ClientEvents>("ws://localhost:8080/ws")
+    return new TypedSocket(
+      "ws://localhost:8080/ws",
+      serverEventSchemas,
+      clientEventSchemas
+    )
   }, [])
 
   return (
@@ -25,6 +34,7 @@ export function useSocket() {
 
   return socket
 }
+
 export function useSocketEvent<K extends keyof ServerEvents & string>(
   event: K,
   handler: (payload: ServerEvents[K]) => void

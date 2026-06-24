@@ -1,68 +1,106 @@
-export type ClientEvents = {
-  "main.CreateUser": {
-    name: string
-    password: string
-  }
+import { toast } from "sonner"
+import { z } from "zod"
 
-  "main.GetUser": {
-    name: string
-  }
-  "main.Ping": {
-    ping: string
-  }
+export const clientEventSchemas = {
+  "main.CreateUser": z.object({
+    name: z.string(),
+    password: z.string(),
+  }),
+  "main.GetUser": z.object({
+    name: z.string(),
+  }),
+  "main.Ping": z.object({
+    ping: z.string(),
+  }),
+} as const
+
+export const serverEventSchemas = {
+  "main.User": z.object({
+    name: z.string(),
+    password: z.string(),
+  }),
+  "main.Pong": z.object({
+    pong: z.string(),
+  }),
+  "main.ErrorResponse": z.object({
+    message: z.string(),
+  }),
+} as const
+
+type SchemaMap = Record<string, z.ZodTypeAny>
+
+type EventsFromSchemas<TSchemas extends SchemaMap> = {
+  [K in keyof TSchemas]: z.infer<TSchemas[K]>
 }
 
-export type ServerEvents = {
-  "main.User": {
-    name: string
-    password: string
-  }
+export type ClientEvents = EventsFromSchemas<typeof clientEventSchemas>
+export type ServerEvents = EventsFromSchemas<typeof serverEventSchemas>
 
-  "main.Pong": {
-    pong: string
-  }
-
-  "main.ErrorResponse": {
-    message: string
-  }
-}
-
-type Envelope<T = unknown> = {
-  type: string
-  payload: T
-}
+const envelopeSchema = z.object({
+  type: z.string(),
+  payload: z.unknown(),
+})
 
 type Handler<T> = (payload: T) => void
 
 export class TypedSocket<
-  Incoming extends Record<string, any>,
-  Outgoing extends Record<string, any>,
+  IncomingSchemas extends SchemaMap,
+  OutgoingSchemas extends SchemaMap,
 > {
   private ws: WebSocket
-  private handlers = new Map<keyof Incoming, Set<Handler<any>>>()
+  private handlers = new Map<
+    keyof EventsFromSchemas<IncomingSchemas>,
+    Set<Handler<unknown>>
+  >()
 
-  constructor(url: string) {
+  constructor(
+    url: string,
+    private incomingSchemas: IncomingSchemas,
+    private outgoingSchemas: OutgoingSchemas
+  ) {
     this.ws = new WebSocket(url)
 
     this.ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data) as Envelope
+      try {
+        const parsedJson = JSON.parse(event.data)
+        const envelope = envelopeSchema.parse(parsedJson)
 
-      const handlers = this.handlers.get(msg.type as keyof Incoming)
-      if (!handlers) return
+        const schema = this.incomingSchemas[
+          envelope.type as keyof IncomingSchemas
+        ]
+        if (!schema) {
+          toast.error(`Unknown websocket event: ${envelope.type}`)
+          return
+        }
 
-      for (const handler of handlers) {
-        handler(msg.payload)
+        const payload = schema.parse(envelope.payload)
+        const handlers = this.handlers.get(
+          envelope.type as keyof EventsFromSchemas<IncomingSchemas>
+        )
+        if (!handlers) return
+
+        for (const handler of handlers) {
+          handler(payload)
+        }
+      } catch (error) {
+        console.error("[typed-socket] invalid websocket message", error)
       }
     }
   }
 
-  emit<K extends keyof Outgoing & string>(type: K, payload: Outgoing[K]) {
-    this.ws.send(JSON.stringify({ type, payload }))
+  emit<K extends keyof EventsFromSchemas<OutgoingSchemas> & string>(
+    type: K,
+    payload: EventsFromSchemas<OutgoingSchemas>[K]
+  ) {
+    const schema = this.outgoingSchemas[type]
+    const validatedPayload = schema.parse(payload)
+
+    this.ws.send(JSON.stringify({ type, payload: validatedPayload }))
   }
 
-  on<K extends keyof Incoming & string>(
+  on<K extends keyof EventsFromSchemas<IncomingSchemas> & string>(
     type: K,
-    handler: Handler<Incoming[K]>
+    handler: Handler<EventsFromSchemas<IncomingSchemas>[K]>
   ) {
     let set = this.handlers.get(type)
 
@@ -71,9 +109,11 @@ export class TypedSocket<
       this.handlers.set(type, set)
     }
 
-    set.add(handler)
+    set.add(handler as Handler<unknown>)
 
-    return () => set.delete(handler)
+    return () => {
+      set.delete(handler as Handler<unknown>)
+    }
   }
 
   close() {
