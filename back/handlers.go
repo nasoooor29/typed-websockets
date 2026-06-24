@@ -24,11 +24,12 @@ func CreateUserHandler(ctx *Context, p CreateUser) error {
 		return fmt.Errorf("password must be at least 6 characters long")
 	}
 
-	users[p.Name] = User{
+	user := User{
 		Name:     p.Name,
 		Password: p.Password,
 	}
-	return nil
+	users[p.Name] = user
+	return Send(ctx.Conn, user)
 }
 
 type GetUser struct {
@@ -41,6 +42,5 @@ func GetUserHandler(ctx *Context, u GetUser) error {
 	if !ok {
 		return fmt.Errorf("user %s not found", u.Name)
 	}
-	Send(ctx.Conn, user)
-	return nil
+	return Send(ctx.Conn, user)
 }
