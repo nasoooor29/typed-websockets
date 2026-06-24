@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -25,6 +26,7 @@ func WSHandler(router *Router) http.HandlerFunc {
 		ctx := &Context{
 			Conn: conn,
 		}
+		slog.Debug("WebSocket connection established", "remoteAddr", r.RemoteAddr)
 
 		for {
 			_, data, err := conn.ReadMessage()
@@ -32,6 +34,8 @@ func WSHandler(router *Router) http.HandlerFunc {
 				log.Println("read error:", err)
 				return
 			}
+
+			log.Printf("received websocket message: %s", data)
 
 			if err := router.Handle(ctx, data); err != nil {
 				log.Println("handler error:", err)

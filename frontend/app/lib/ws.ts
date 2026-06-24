@@ -13,7 +13,7 @@ export type ClientEvents = {
 }
 
 export type ServerEvents = {
-  "main.GetUser": {
+  "main.User": {
     name: string
     password: string
   }
