@@ -9,8 +9,12 @@ import {
 
 import type { Route } from "./+types/root"
 import "./app.css"
+import { useSocketEvent } from "./hooks"
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  useSocketEvent("main.ErrorResponse", (p)=>{
+
+  })
   return (
     <html lang="en">
       <head>

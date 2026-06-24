@@ -15,6 +15,7 @@ func main() {
 	router := NewRouter()
 	Register(router, GetUserHandler)
 	Register(router, CreateUserHandler)
+	Register(router, PingHandler)
 	for k := range router.handlers {
 		fmt.Printf("router.handlers: %s\n", k)
 	}

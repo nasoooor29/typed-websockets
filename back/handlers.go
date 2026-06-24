@@ -44,3 +44,14 @@ func GetUserHandler(ctx *Context, u GetUser) error {
 	}
 	return Send(ctx.Conn, user)
 }
+
+type Ping struct {
+	Ping string `json:"ping"`
+}
+type Pong struct {
+	Pong string `json:"pong"`
+}
+
+func PingHandler(ctx *Context, p Ping) error {
+	return Send(ctx.Conn, Pong{Pong: p.Ping})
+}
