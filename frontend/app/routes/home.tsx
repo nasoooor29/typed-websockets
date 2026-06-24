@@ -93,7 +93,7 @@ export default function Home() {
               <Button
                 className="w-full sm:w-auto"
                 onClick={() => {
-                  s.emit("main.CreateUser", {
+                  s.emit("user.create", {
                     name: frm.username,
                     password: frm.password,
                   })
@@ -124,7 +124,7 @@ export default function Home() {
               <Button
                 className="w-full sm:w-auto"
                 onClick={() => {
-                  s.emit("main.GetUser", { name: user })
+                  s.emit("user.get", { name: user })
                 }}
               >
                 Get user
@@ -155,7 +155,7 @@ export default function Home() {
                 className="w-full md:w-auto"
                 onClick={() => {
                   console.debug("[home] ping click")
-                  s.emit("main.Ping", { ping: inp })
+                  s.emit("main.ping", { ping: inp })
                 }}
               >
                 Send ping
