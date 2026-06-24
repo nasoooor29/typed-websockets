@@ -33,10 +33,7 @@ func NewRouter() *Router {
 	}
 }
 
-func Register[T any](r *Router, fn func(*Context, T) error) {
-	// get the type name of T
-	msgType := fmt.Sprintf("%T", *new(T))
-	// if it's already registered panic and print error
+func Register[T any](r *Router, msgType string, fn func(*Context, T) error) {
 	if _, ok := r.handlers[msgType]; ok {
 		panic(fmt.Sprintf("Register: handler for %s already registered", msgType))
 	}

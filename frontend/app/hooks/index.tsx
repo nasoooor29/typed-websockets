@@ -4,14 +4,14 @@ import { createSocketThings } from "./ws"
 export * from "./use-mobile"
 
 export const clientEventSchemas = {
-  "main.CreateUser": z.object({
+  "user.create": z.object({
     name: z.string(),
     password: z.string(),
   }),
-  "main.GetUser": z.object({
+  "user.get": z.object({
     name: z.string(),
   }),
-  "main.Ping": z.object({
+  "main.ping": z.object({
     ping: z.string(),
   }),
 } as const

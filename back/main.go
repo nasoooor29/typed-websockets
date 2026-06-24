@@ -13,9 +13,9 @@ func greet(w http.ResponseWriter, r *http.Request) {
 func main() {
 
 	router := NewRouter()
-	Register(router, GetUserHandler)
-	Register(router, CreateUserHandler)
-	Register(router, PingHandler)
+	Register(router, "user.create", CreateUserHandler)
+	Register(router, "user.get", GetUserHandler)
+	Register(router, "main.ping", PingHandler)
 	for k := range router.handlers {
 		fmt.Printf("router.handlers: %s\n", k)
 	}
