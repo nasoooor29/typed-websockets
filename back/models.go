@@ -25,6 +25,8 @@ type Context struct {
 	SessionToken string
 }
 
+var userIdConnections = make(map[int64]*Context)
+
 type Router struct {
 	handlers map[string]HandlerFunc
 }
@@ -76,4 +78,48 @@ func Send[T any](conn *websocket.Conn, payload T) error {
 		"type":    msgType,
 		"payload": payload,
 	})
+}
+
+func SendToUsers[T any](userIds []int, payload T) error {
+	errors := []error{}
+
+	for _, userId := range userIds {
+		user, ok := userIdConnections[int64(userId)]
+		if !ok {
+			errors = append(errors, fmt.Errorf("user not found: %d", userId))
+			continue
+		}
+		if user == nil {
+			errors = append(errors, fmt.Errorf("user not found: %d", userId))
+			continue
+		}
+		if user.Conn == nil {
+			errors = append(errors, fmt.Errorf("user connection is nil: %d", userId))
+			continue
+		}
+		if err := Send(user.Conn, payload); err != nil {
+			errors = append(errors, fmt.Errorf("send to user %d: %w", userId, err))
+		}
+	}
+	if len(errors) > 0 {
+		return fmt.Errorf("failed to send to some users: %v", errors)
+	}
+	return nil
+}
+
+func SendToUser[T any](userId int, payload T) error {
+	user, ok := userIdConnections[int64(userId)]
+	if !ok {
+		return fmt.Errorf("user not found: %d", userId)
+	}
+	if user == nil {
+		return fmt.Errorf("user not found: %d", userId)
+	}
+	if user.Conn == nil {
+		return fmt.Errorf("user connection is nil: %d", userId)
+	}
+	if err := Send(user.Conn, payload); err != nil {
+		return fmt.Errorf("send to user %d: %w", userId, err)
+	}
+	return nil
 }

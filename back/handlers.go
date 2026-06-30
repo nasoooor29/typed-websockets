@@ -95,6 +95,7 @@ func authenticateUser(ctx *Context, user User) error {
 
 	ctx.User = &user
 	ctx.SessionToken = token
+	userIdConnections[user.ID] = ctx
 	return Send(ctx.Conn, AuthSession{User: user, Token: token})
 }
 
@@ -133,6 +134,7 @@ func LogoutHandler(ctx *Context, p LogoutRequest) error {
 	}
 	ctx.User = nil
 	ctx.SessionToken = ""
+	userIdConnections[ctx.User.ID] = nil
 	return Send(ctx.Conn, LoggedOut{})
 }
 
