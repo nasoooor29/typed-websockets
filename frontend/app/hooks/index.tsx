@@ -17,17 +17,26 @@ export const clientEventSchemas = {
     name: z.string(),
     password: z.string(),
   }),
-  "user.me": z.object({}),
+  "user.me": z.object({
+    token: z.string(),
+  }),
+  "user.logout": z.object({
+    token: z.string(),
+  }),
   "main.ping": z.object({
     ping: z.string(),
   }),
 } as const
 
 export const serverEventSchemas = {
-  "main.User": userSchema,
+  "main.AuthSession": z.object({
+    user: userSchema,
+    token: z.string(),
+  }),
   "main.Me": z.object({
     user: userSchema.nullable(),
   }),
+  "main.LoggedOut": z.object({}),
   "main.Pong": z.object({
     pong: z.string(),
   }),

@@ -1,5 +1,6 @@
+import { useAtomValue } from "jotai"
 import { useState } from "react"
-import { Link, useOutletContext } from "react-router"
+import { Link } from "react-router"
 import { toast } from "sonner"
 import { Button } from "~/components/ui/button"
 import {
@@ -13,11 +14,11 @@ import {
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 import { useSocket, useSocketEvent } from "~/hooks"
-import type { AppOutletContext } from "./app-layout"
+import { userAtom } from "~/store/auth"
 
 export default function Home() {
   const socket = useSocket()
-  const { user } = useOutletContext<AppOutletContext>()
+  const user = useAtomValue(userAtom)
   const [message, setMessage] = useState("")
   const [pong, setPong] = useState("")
 
@@ -62,7 +63,15 @@ export default function Home() {
           >
             Send ping
           </Button>
-          {!user && (
+          {user ? (
+            <Button
+              className="w-full"
+              variant="outline"
+              onClick={() => socket.emit("user.logout", { token: user.token })}
+            >
+              Log out
+            </Button>
+          ) : (
             <div className="flex gap-4 text-sm">
               <Link
                 className="font-medium text-primary hover:underline"

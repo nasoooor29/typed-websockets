@@ -44,6 +44,9 @@ importers:
       isbot:
         specifier: ^5
         version: 5.1.40
+      jotai:
+        specifier: ^2.20.1
+        version: 2.20.1(@types/react@19.2.15)(react@19.2.6)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -2465,6 +2468,23 @@ packages:
     resolution: {integrity: sha512-yNeeynhhtIVRBk12tBV4eHNxwB42HzR4Q3Ea7vCOiJhImGaAIdIMrbJtacQlBizGLjUPw+akkFI5Dn9T70XoVQ==}
     engines: {node: '>=18'}
 
+  jotai@2.20.1:
+    resolution: {integrity: sha512-dnuKfU/GLi8B28RRMjQ3AfoN7kfzP8o41+AX2FmITZqEMY8PHnjABq+VkEooomLwYaGjda+pgy0yFSjaHX/ZPg==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@babel/core': '>=7.0.0'
+      '@babel/template': '>=7.0.0'
+      '@types/react': '>=17.0.0'
+      react: '>=17.0.0'
+    peerDependenciesMeta:
+      '@babel/core':
+        optional: true
+      '@babel/template':
+        optional: true
+      '@types/react':
+        optional: true
+      react:
+        optional: true
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
@@ -5834,6 +5854,10 @@ snapshots:
 
   isbot@5.1.40: {}
 
+  jotai@2.20.1(@types/react@19.2.15)(react@19.2.6):
+    optionalDependencies:
+      '@types/react': 19.2.15
+      react: 19.2.6
   isexe@2.0.0: {}
 
   isexe@3.1.5: {}
@@ -6855,3 +6879,5 @@ snapshots:
   zod@3.25.76: {}
 
   zod@4.4.3: {}
+
+

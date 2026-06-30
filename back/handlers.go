@@ -13,6 +13,11 @@ type User struct {
 	Name string `json:"name"`
 }
 
+type AuthSession struct {
+	User  User   `json:"user"`
+	Token string `json:"token"`
+}
+
 type CreateUser struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
@@ -22,7 +27,6 @@ func CreateUserHandler(ctx *Context, p CreateUser) error {
 	if p.Name == "" || p.Password == "" {
 		return fmt.Errorf("name and password cannot be empty")
 	}
-
 	if len(p.Password) < 6 {
 		return fmt.Errorf("password must be at least 6 characters long")
 	}
@@ -50,8 +54,7 @@ func CreateUserHandler(ctx *Context, p CreateUser) error {
 	}
 
 	user := User{ID: id, Name: p.Name}
-	ctx.User = &user
-	return Send(ctx.Conn, user)
+	return authenticateUser(ctx, user)
 }
 
 type LoginUser struct {
@@ -66,7 +69,6 @@ func LoginUserHandler(ctx *Context, p LoginUser) error {
 
 	var user User
 	var passwordHash string
-
 	err := db.QueryRow(
 		"SELECT id, name, password FROM users WHERE name = ?",
 		p.Name,
@@ -82,16 +84,56 @@ func LoginUserHandler(ctx *Context, p LoginUser) error {
 		return fmt.Errorf("invalid username or password")
 	}
 
+	return authenticateUser(ctx, user)
+}
+
+func authenticateUser(ctx *Context, user User) error {
+	token, err := createSession(user.ID)
+	if err != nil {
+		return err
+	}
+
 	ctx.User = &user
-	return Send(ctx.Conn, user)
+	ctx.SessionToken = token
+	return Send(ctx.Conn, AuthSession{User: user, Token: token})
+}
+
+type MeRequest struct {
+	Token string `json:"token"`
 }
 
 type Me struct {
 	User *User `json:"user"`
 }
 
-func MeHandler(ctx *Context, _ struct{}) error {
-	return Send(ctx.Conn, Me{User: ctx.User})
+func MeHandler(ctx *Context, p MeRequest) error {
+	user, err := findUserBySession(p.Token)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("find session: %w", err)
+	}
+
+	ctx.User = user
+	if user == nil {
+		ctx.SessionToken = ""
+	} else {
+		ctx.SessionToken = p.Token
+	}
+	return Send(ctx.Conn, Me{User: user})
+}
+
+type LogoutRequest struct {
+	Token string `json:"token"`
+}
+
+type LoggedOut struct{}
+
+func LogoutHandler(ctx *Context, p LogoutRequest) error {
+	if err := deleteSession(p.Token); err != nil {
+		return err
+	}
+	ctx.User = nil
+	ctx.SessionToken = ""
+	return Send(ctx.Conn, LoggedOut{})
 }
 
 type Ping struct {

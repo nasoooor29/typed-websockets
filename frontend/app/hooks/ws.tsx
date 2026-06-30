@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo } from "react"
+import { createContext, useContext, useEffect, useMemo, useRef } from "react"
 import { toast } from "sonner"
 import { z } from "zod"
 
@@ -103,8 +103,21 @@ export class TypedSocket<
     }
   }
 
-  close() {
-    this.ws.close()
+  closeWhen(shouldClose: () => boolean) {
+    const closeIfUnused = () => {
+      queueMicrotask(() => {
+        if (shouldClose() && this.ws.readyState < WebSocket.CLOSING) {
+          this.ws.close()
+        }
+      })
+    }
+
+    if (this.ws.readyState === WebSocket.CONNECTING) {
+      this.ws.addEventListener("open", closeIfUnused, { once: true })
+      return
+    }
+
+    closeIfUnused()
   }
 }
 
@@ -122,6 +135,8 @@ export function createSocketThings<
   > | null>(null)
 
   const SocketProvider = ({ children }: { children: React.ReactNode }) => {
+    const mounted = useRef(false)
+
     const socket = useMemo(() => {
       return new TypedSocket(
         props.url,
@@ -131,11 +146,13 @@ export function createSocketThings<
     }, [])
 
     useEffect(() => {
+      mounted.current = true
+
       return () => {
-        socket.close()
+        mounted.current = false
+        socket.closeWhen(() => !mounted.current)
       }
     }, [socket])
-
     return (
       <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
     )
@@ -172,3 +189,4 @@ export function createSocketThings<
     SocketProvider,
   }
 }
+

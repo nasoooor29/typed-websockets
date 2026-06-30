@@ -20,8 +20,9 @@ type ErrorResponse struct {
 type HandlerFunc func(ctx *Context, raw json.RawMessage) error
 
 type Context struct {
-	Conn *websocket.Conn
-	User *User
+	Conn         *websocket.Conn
+	User         *User
+	SessionToken string
 }
 
 type Router struct {
