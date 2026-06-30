@@ -8,8 +8,9 @@ export const clientEventSchemas = {
     name: z.string(),
     password: z.string(),
   }),
-  "user.get": z.object({
+  "user.login": z.object({
     name: z.string(),
+    password: z.string(),
   }),
   "main.ping": z.object({
     ping: z.string(),
@@ -18,8 +19,8 @@ export const clientEventSchemas = {
 
 export const serverEventSchemas = {
   "main.User": z.object({
+    id: z.number(),
     name: z.string(),
-    password: z.string(),
   }),
   "main.Pong": z.object({
     pong: z.string(),

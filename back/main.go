@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -11,10 +12,14 @@ func greet(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	if err := initDatabase(); err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
 	router := NewRouter()
 	Register(router, "user.create", CreateUserHandler)
-	Register(router, "user.get", GetUserHandler)
+	Register(router, "user.login", LoginUserHandler)
 	Register(router, "main.ping", PingHandler)
 	for k := range router.handlers {
 		fmt.Printf("router.handlers: %s\n", k)
@@ -23,5 +28,5 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/ws", withCORS(WSHandler(router)))
 	mux.Handle("/", withCORS(http.HandlerFunc(greet)))
-	http.ListenAndServe(":8080", mux)
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }
