@@ -49,7 +49,9 @@ func CreateUserHandler(ctx *Context, p CreateUser) error {
 		return fmt.Errorf("create user: %w", err)
 	}
 
-	return Send(ctx.Conn, User{ID: id, Name: p.Name})
+	user := User{ID: id, Name: p.Name}
+	ctx.User = &user
+	return Send(ctx.Conn, user)
 }
 
 type LoginUser struct {
@@ -80,6 +82,7 @@ func LoginUserHandler(ctx *Context, p LoginUser) error {
 		return fmt.Errorf("invalid username or password")
 	}
 
+	ctx.User = &user
 	return Send(ctx.Conn, user)
 }
 
@@ -92,5 +95,8 @@ type Pong struct {
 }
 
 func PingHandler(ctx *Context, p Ping) error {
+	if ctx.User == nil {
+		return fmt.Errorf("you must be logged in to send a ping")
+	}
 	return Send(ctx.Conn, Pong{Pong: p.Ping})
 }

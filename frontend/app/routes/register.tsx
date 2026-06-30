@@ -22,8 +22,8 @@ export default function Register() {
 
   useSocketEvent("main.ErrorResponse", ({ message }) => toast.error(message))
   useSocketEvent("main.User", () => {
-    toast.success("Account created. You can now log in.")
-    navigate("/login")
+    toast.success("Account created.")
+    navigate("/")
   })
 
   function submit(event: FormEvent<HTMLFormElement>) {

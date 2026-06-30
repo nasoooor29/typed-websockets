@@ -21,6 +21,7 @@ type HandlerFunc func(ctx *Context, raw json.RawMessage) error
 
 type Context struct {
 	Conn *websocket.Conn
+	User *User
 }
 
 type Router struct {

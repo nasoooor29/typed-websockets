@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react"
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 import { toast } from "sonner"
 import { Button } from "~/components/ui/button"
 import {
@@ -16,12 +16,14 @@ import { useSocket, useSocketEvent } from "~/hooks"
 
 export default function Login() {
   const socket = useSocket()
+  const navigate = useNavigate()
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
 
   useSocketEvent("main.ErrorResponse", ({ message }) => toast.error(message))
   useSocketEvent("main.User", (user) => {
     toast.success(`Welcome back, ${user.name}`)
+    navigate("/")
   })
 
   function submit(event: FormEvent<HTMLFormElement>) {
