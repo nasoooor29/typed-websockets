@@ -69,7 +69,15 @@ export class TypedSocket<
     const schema = this.outgoingSchemas[type]
     const validatedPayload = schema.parse(payload)
 
-    this.ws.send(JSON.stringify({ type, payload: validatedPayload }))
+    const message = JSON.stringify({ type, payload: validatedPayload })
+    if (this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(message)
+      return
+    }
+
+    this.ws.addEventListener("open", () => this.ws.send(message), {
+      once: true,
+    })
   }
 
   on<K extends keyof EventsFromSchemas<IncomingSchemas> & string>(

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router"
+import { Link, useOutletContext } from "react-router"
 import { toast } from "sonner"
 import { Button } from "~/components/ui/button"
 import {
@@ -13,18 +13,17 @@ import {
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 import { useSocket, useSocketEvent } from "~/hooks"
+import type { AppOutletContext } from "./app-layout"
 
 export default function Home() {
   const socket = useSocket()
+  const { user } = useOutletContext<AppOutletContext>()
   const [message, setMessage] = useState("")
   const [pong, setPong] = useState("")
 
   useSocketEvent("main.Pong", ({ pong: response }) => {
     setPong(response)
     toast.success("Pong received")
-  })
-  useSocketEvent("main.ErrorResponse", ({ message: error }) => {
-    toast.error(error)
   })
 
   return (
@@ -33,7 +32,9 @@ export default function Home() {
         <CardHeader>
           <CardTitle>Ping pong</CardTitle>
           <CardDescription>
-            Send a message over your authenticated websocket connection.
+            {user
+              ? `Logged in as ${user.name}. Send a message over your websocket.`
+              : "Log in or register to use the authenticated ping."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -44,6 +45,7 @@ export default function Home() {
               value={message}
               onChange={(event) => setMessage(event.target.value)}
               placeholder="Say ping..."
+              disabled={!user}
             />
           </div>
           {pong && (
@@ -55,19 +57,27 @@ export default function Home() {
         <CardFooter className="mt-6 flex-col gap-3">
           <Button
             className="w-full"
+            disabled={!user}
             onClick={() => socket.emit("main.ping", { ping: message })}
           >
             Send ping
           </Button>
-          <p className="text-sm text-muted-foreground">
-            Need an account?{" "}
-            <Link
-              className="font-medium text-primary hover:underline"
-              to="/login"
-            >
-              Log in
-            </Link>
-          </p>
+          {!user && (
+            <div className="flex gap-4 text-sm">
+              <Link
+                className="font-medium text-primary hover:underline"
+                to="/login"
+              >
+                Log in
+              </Link>
+              <Link
+                className="font-medium text-primary hover:underline"
+                to="/register"
+              >
+                Register
+              </Link>
+            </div>
+          )}
         </CardFooter>
       </Card>
     </main>

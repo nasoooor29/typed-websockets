@@ -86,6 +86,14 @@ func LoginUserHandler(ctx *Context, p LoginUser) error {
 	return Send(ctx.Conn, user)
 }
 
+type Me struct {
+	User *User `json:"user"`
+}
+
+func MeHandler(ctx *Context, _ struct{}) error {
+	return Send(ctx.Conn, Me{User: ctx.User})
+}
+
 type Ping struct {
 	Ping string `json:"ping"`
 }

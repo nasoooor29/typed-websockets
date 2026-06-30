@@ -1,6 +1,5 @@
 import { type FormEvent, useState } from "react"
-import { Link, useNavigate } from "react-router"
-import { toast } from "sonner"
+import { Link } from "react-router"
 import { Button } from "~/components/ui/button"
 import {
   Card,
@@ -12,19 +11,12 @@ import {
 } from "~/components/ui/card"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
-import { useSocket, useSocketEvent } from "~/hooks"
+import { useSocket } from "~/hooks"
 
 export default function Register() {
   const socket = useSocket()
-  const navigate = useNavigate()
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
-
-  useSocketEvent("main.ErrorResponse", ({ message }) => toast.error(message))
-  useSocketEvent("main.User", () => {
-    toast.success("Account created.")
-    navigate("/")
-  })
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
